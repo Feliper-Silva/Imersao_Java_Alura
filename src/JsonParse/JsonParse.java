@@ -1,6 +1,9 @@
+package JsonParse;
+
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
 
 public class JsonParse {
     private static final Pattern REGEX_ITEMS = Pattern.compile(".*\\[(.+)\\].*");

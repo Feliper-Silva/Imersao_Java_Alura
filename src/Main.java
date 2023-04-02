@@ -1,6 +1,11 @@
-import java.net.URI;
-import java.net.http.*;
-import java.net.http.HttpResponse.*;
+import Cliente.ClienteHttp;
+import ExtratorConteudo.IExtrator.IExtrator;
+import ExtratorConteudo.Imdb.*;
+import ExtratorConteudo.Nasa.*;
+import Conteudo.Conteudo;
+
+import java.io.InputStream;
+import java.net.URL;
 import java.util.*;
 
 
@@ -8,27 +13,30 @@ import java.util.*;
 public class Main {
     public static void main(String[] args) throws Exception {
 
-        //fazer uma conexão HTTP e buscar os top 250 filmes
-        String url = "https://raw.githubusercontent.com/alura-cursos/imersao-java-2-api/main/TopMovies.json";
-        URI endereco = URI.create(url);
-        var client = HttpClient.newHttpClient();
-        var request = HttpRequest.newBuilder(endereco).GET().build();
+        /* URL ALURA FILMES*/
+        //https://raw.githubusercontent.com/alura-cursos/imersao-java-2-api/main/TopMovies.json
+        //https://raw.githubusercontent.com/alura-cursos/imersao-java-2-api/main/MostPopularMovies.json
+        /* URL NASA ALURA */
+        //https://raw.githubusercontent.com/alura-cursos/imersao-java-2-api/main/NASA-APOD.json
+        /*URL API NASA*/
+        //https://api.nasa.gov/neo/rest/v1/feed?start_date=2015-09-07&end_date=2015-09-08&api_key=DEMO_KEY
+        String url = "https://raw.githubusercontent.com/alura-cursos/imersao-java-2-api/main/NASA-APOD.json";
 
-        var response = client.send(request, BodyHandlers.ofString());
-        var body = response.body();
+        var http = new ClienteHttp();
+        String json = http.getDados(url);
 
-        System.out.println(body);
+        IExtrator extratorNasa = new ExtratorNasa();
+        List<Conteudo> conteudos = extratorNasa.ExtraiConteudos(json);
+        var gerador = new GeradorFigurinhas();
+        var numeroRandom = new Random();
+        for ( int i = 0; i < conteudos.size(); i++){
+            Conteudo conteudo = conteudos.get(i);
+            System.out.println(conteudo.getTitle());
+            InputStream inputStream = new URL(conteudo.getUrlImagem()).openStream();
+            String nomeArquivo = "figurinha"+conteudo.getTitle()+numeroRandom.nextInt()+".png";
 
-        var parse = new JsonParse();
-
-        List<Map<String, String>> listaFilmes = parse.parse(body);
-
-        for (Map<String, String> filme :listaFilmes ) {
-            System.out.println("---------------------------------------------------------");
-            System.out.println(filme.get("title"));
-            System.out.println(filme.get("image"));
-            System.out.println(filme.get("year"));
-            System.out.println("---------------------------------------------------------");
+            gerador.CriarFigurinha(inputStream,nomeArquivo);
+            System.out.println(conteudo.getTitle());
         }
     }
 }
